@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/administradores/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/administradores/$(request.auth.uid)).data.activo == true;
+    }
+
+    // Catálogo: lectura pública de productos publicados, escritura solo admin.
+    match /productos/{productoId} {
+      allow read: if resource.data.publicado == true || esAdmin();
+      allow write: if esAdmin();
+    }
+
+    match /categorias/{categoriaId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    match /zonasEnvio/{zonaId} {
+      allow read: if resource.data.activa == true || esAdmin();
+      allow write: if esAdmin();
+    }
+
+    match /promociones/{promoId} {
+      allow read: if resource.data.activa == true || esAdmin();
+      allow write: if esAdmin();
+    }
+
+    // Pedidos: el cliente NO lee/escribe directo. Todo pasa por Netlify Functions
+    // con Firebase Admin SDK (que ignora estas reglas). Esto evita que un cliente
+    // pueda leer pedidos de otro cliente o falsificar un estado de pago.
+    match /pedidos/{pedidoId} {
+      allow read: if esAdmin();
+      allow write: if esAdmin();
+    }
+
+    match /configuracion/{docId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    match /administradores/{uid} {
+      allow read: if esAdmin();
+      allow write: if false; // alta de administradores se hace manualmente desde la consola de Firebase
+    }
+  }
+}

@@ -1,0 +1,40 @@
+.carrito { padding: 24px 0 64px; }
+.carrito__titulo { font-size: 1.6rem; margin-bottom: 20px; }
+.carrito-vacio { padding: 64px 0; text-align: center; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+
+.carrito__items { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.carrito__item { display: flex; gap: 14px; }
+.carrito__item-imagen { width: 80px; flex-shrink: 0; }
+.carrito__item-nombre { font-weight: 600; margin-bottom: 4px; }
+.carrito__item-precio { color: var(--accent-flame); font-weight: 700; margin-bottom: 6px; }
+.carrito__item-cantidad { display: flex; align-items: center; gap: 10px; }
+.carrito__item-cantidad button {
+  background: var(--bg-surface); border: 1px solid var(--borde); color: var(--fg);
+  width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+}
+.carrito__item-quitar { background: none !important; border: none !important; width: auto !important; color: var(--fg-muted) !important; font-size: 0.8rem; margin-left: 8px; }
+
+.carrito__promo { display: flex; gap: 8px; margin-bottom: 6px; }
+.carrito__promo input {
+  flex: 1; background: var(--bg-surface); border: 1px solid var(--borde); color: var(--fg);
+  padding: 10px 12px; border-radius: var(--radio-chico);
+}
+.carrito__promo button {
+  background: var(--bg-surface-2); border: 1px solid var(--borde); color: var(--fg);
+  padding: 0 16px; border-radius: var(--radio-chico); cursor: pointer;
+}
+.carrito__error { color: var(--error); font-size: 0.85rem; margin: 6px 0; }
+.carrito__promo-ok { color: var(--ok); font-size: 0.85rem; margin: 6px 0 18px; }
+
+.carrito__envio { margin: 20px 0; }
+.carrito__envio label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--fg-muted); }
+.carrito__envio select {
+  width: 100%; background: var(--bg-surface); border: 1px solid var(--borde); color: var(--fg);
+  padding: 12px; border-radius: var(--radio-chico);
+}
+.carrito__zona-info { margin-top: 8px; font-size: 0.85rem; color: var(--ok); }
+
+.carrito__totales { border-top: 1px solid var(--borde); padding-top: 16px; margin: 20px 0; }
+.carrito__fila { display: flex; justify-content: space-between; padding: 4px 0; color: var(--fg-muted); }
+.carrito__fila--descuento span:last-child { color: var(--ok); }
+.carrito__fila--total { color: var(--fg); font-weight: 700; font-size: 1.1rem; padding-top: 10px; border-top: 1px solid var(--borde); margin-top: 6px; }

@@ -1,0 +1,59 @@
+.detalle-producto {
+  display: grid;
+  gap: 28px;
+  padding: 24px 0 48px;
+}
+@media (min-width: 720px) {
+  .detalle-producto { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+.detalle-producto__badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.detalle-producto__nombre {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+}
+.detalle-producto__precio {
+  color: var(--accent-flame);
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+}
+.detalle-producto__descripcion {
+  margin-bottom: 20px;
+}
+.detalle-producto__cantidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
+  padding: 8px 16px;
+  margin-bottom: 16px;
+}
+.detalle-producto__cantidad button {
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.detalle-producto__ir-carrito {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--accent-flame);
+  margin-top: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.detalle-producto__personalizar {
+  display: block;
+  margin-top: 24px;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+}
+.detalle-producto__personalizar:hover { color: var(--accent-flame); }

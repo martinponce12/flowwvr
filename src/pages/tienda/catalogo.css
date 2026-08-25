@@ -1,0 +1,28 @@
+.catalogo { padding: 24px 0 48px; }
+.catalogo__titulo {
+  font-size: 1.6rem;
+  margin-bottom: 18px;
+}
+.catalogo__filtros {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 18px;
+}
+.filtro {
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--borde);
+  color: var(--fg);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.filtro--activo {
+  background: var(--accent-flame);
+  color: #0a0a0b;
+  border-color: var(--accent-flame);
+  font-weight: 700;
+}
+.catalogo__vacio { color: var(--fg-muted); padding: 24px 0; }

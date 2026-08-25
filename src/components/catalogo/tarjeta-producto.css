@@ -1,0 +1,32 @@
+.tarjeta-producto {
+  display: block;
+}
+.tarjeta-producto__imagen-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+.tarjeta-producto__badges {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.tarjeta-producto__nombre {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+.tarjeta-producto__precio {
+  font-weight: 700;
+  color: var(--accent-flame);
+}
+.tarjeta-producto__precio-tachado {
+  text-decoration: line-through;
+  color: var(--fg-muted);
+  font-weight: 400;
+  font-size: 0.8rem;
+}

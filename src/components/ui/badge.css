@@ -1,0 +1,13 @@
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.badge--holo { background: var(--holo); color: #0a0a0b; }
+.badge--ok { background: var(--ok); color: #0a0a0b; }
+.badge--warn { background: var(--warn); color: #0a0a0b; }
+.badge--error { background: var(--error); color: #0a0a0b; }

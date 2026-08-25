@@ -1,0 +1,46 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border-radius: var(--radio-chico);
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  min-height: 48px; /* mobile-first: área táctil cómoda */
+}
+
+.boton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.boton--primario {
+  background: var(--accent-flame);
+  color: #0a0a0b;
+}
+.boton--primario:not(:disabled):hover {
+  background: var(--accent-flame-hover);
+}
+
+.boton--secundario {
+  background: var(--bg-surface-2);
+  color: var(--fg);
+  border: 1px solid var(--borde);
+}
+.boton--secundario:not(:disabled):hover {
+  border-color: var(--accent-flame);
+}
+
+.boton--fantasma {
+  background: transparent;
+  color: var(--fg);
+  padding: 8px 12px;
+  min-height: auto;
+}
+.boton--fantasma:not(:disabled):hover {
+  color: var(--accent-flame);
+}

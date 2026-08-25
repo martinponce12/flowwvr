@@ -1,0 +1,118 @@
+/* ===== FLOWWVR — Design tokens =====
+   Dirección: negro urbano + acento holográfico/iridiscente (tomado de la
+   identidad real de @flowwvr en Instagram: fondo negro, remolino
+   holográfico, stickers tipo smiley/checkerboard, tono directo y picante).
+*/
+
+:root {
+  --bg: #0a0a0b;
+  --bg-surface: #151517;
+  --bg-surface-2: #1e1e21;
+  --fg: #f5f5f0;
+  --fg-muted: #a3a3a8;
+  --borde: #2a2a2e;
+
+  --accent-flame: #d81b1b;       /* rojo del logo: acento principal, CTAs */
+  --accent-flame-hover: #f13333;
+  --ok: #3ddc97;
+  --warn: #ffc95c;
+  --error: #ff5c7a;
+
+  /* gradiente holográfico: reservado para productos (son holográficos de verdad) */
+  --holo: linear-gradient(135deg, #ff3caC, #7b5cff 30%, #2fb8ff 55%, #3ddc97 75%, #ffdf5c);
+
+  --font-display: 'Archivo Black', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+
+  --radio: 14px;
+  --radio-chico: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  color: var(--fg-muted);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Contenedor estándar mobile-first */
+.contenedor {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Firma visual: remolino holográfico animado (usado en placeholders de producto) */
+.holo-blob {
+  background: conic-gradient(from 0deg, #ff3cac, #7b5cff, #2fb8ff, #3ddc97, #ffdf5c, #ff3cac);
+  filter: blur(2px) saturate(1.3);
+  animation: girar-holo 14s linear infinite;
+}
+
+@keyframes girar-holo {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-blob { animation: none; }
+}
+
+/* Cuadrillé de marca (tomado del logo): acento gráfico puntual, no fondo completo. */
+.cuadrille {
+  background-image:
+    linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
+    linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+}
+
+.texto-holo {
+  background: var(--holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Foco visible accesible */
+:focus-visible {
+  outline: 2px solid var(--accent-flame);
+  outline-offset: 2px;
+}

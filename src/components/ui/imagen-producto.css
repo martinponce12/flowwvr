@@ -1,0 +1,21 @@
+.imagen-producto {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radio);
+  object-fit: cover;
+  background: var(--bg-surface);
+}
+
+.imagen-producto--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  filter: saturate(1.4);
+}
+
+.ph-holografico { background: conic-gradient(from 45deg, #ff3cac, #7b5cff, #2fb8ff, #3ddc97, #ffdf5c, #ff3cac); }
+.ph-smiley { background: linear-gradient(135deg, #1e1e21 25%, #ffdf5c 25%, #ffdf5c 50%, #1e1e21 50%, #1e1e21 75%, #ffdf5c 75%); background-size: 24px 24px; }
+.ph-serpiente { background: linear-gradient(135deg, #123, #2fb8ff, #3ddc97); }
+.ph-negro { background: linear-gradient(160deg, #1e1e21, #0a0a0b); }
+.ph-default { background: var(--bg-surface-2); }
