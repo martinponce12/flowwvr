@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { obtenerConfiguracion } from '@/services/datos/configuracion'
+import { linkWhatsapp } from '@/utils/whatsapp'
 import type { Configuracion } from '@/types'
 import './footer.css'
 
@@ -13,7 +14,7 @@ export default function Footer() {
 
   if (!config) return null
 
-  const linkWhatsapp = `https://wa.me/${config.tienda.whatsapp}`
+  const linkWa = linkWhatsapp(config.tienda.whatsapp)
   const linkInstagram = `https://instagram.com/${config.tienda.instagram}`
 
   return (
@@ -25,12 +26,13 @@ export default function Footer() {
         </div>
 
         <div className="footer__contacto">
-          <a href={linkWhatsapp} target="_blank" rel="noreferrer">WhatsApp</a>
+          <a href={linkWa} target="_blank" rel="noreferrer">WhatsApp</a>
           <a href={linkInstagram} target="_blank" rel="noreferrer">Instagram</a>
           <a href={`mailto:${config.tienda.email}`}>{config.tienda.email}</a>
         </div>
 
         <div className="footer__legales">
+          <Link to="/seguimiento">Seguí tu pedido</Link>
           <Link to="/legales/terminos">Términos y Condiciones</Link>
           <Link to="/legales/privacidad">Política de Privacidad</Link>
           <Link to="/legales/cambios-devoluciones">Cambios y devoluciones</Link>

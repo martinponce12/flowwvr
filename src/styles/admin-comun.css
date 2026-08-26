@@ -27,3 +27,9 @@
   font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
   background: var(--bg-surface-2); color: var(--fg-muted);
 }
+
+.admin-grafico {
+  background: var(--bg-surface); border: 1px solid var(--borde); border-radius: var(--radio);
+  padding: 18px; margin-bottom: 20px;
+}
+.admin-grafico__titulo { font-size: 0.95rem; color: var(--fg-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.02em; }

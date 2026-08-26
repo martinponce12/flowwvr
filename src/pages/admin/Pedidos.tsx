@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { listarPedidos, actualizarPedido } from '@/services/datos/pedidos'
 import { actualizarProducto, obtenerProducto } from '@/services/datos/productos'
+import { linkWhatsapp } from '@/utils/whatsapp'
+import { ETIQUETAS_ESTADO, COLOR_ESTADO } from '@/utils/estadosPedido'
 import { formatearPrecio } from '@/utils/formato'
 import type { Pedido, EstadoPedido } from '@/types'
 import '@/styles/admin-comun.css'
@@ -10,17 +12,6 @@ const ESTADOS: EstadoPedido[] = [
   'pendiente_pago', 'esperando_comprobante', 'pagado', 'preparando',
   'enviado', 'entregado', 'cancelado', 'reembolsado'
 ]
-
-const ETIQUETAS: Record<EstadoPedido, string> = {
-  pendiente_pago: 'Pendiente de pago',
-  esperando_comprobante: 'Esperando comprobante',
-  pagado: 'Pagado',
-  preparando: 'Preparando',
-  enviado: 'Enviado',
-  entregado: 'Entregado',
-  cancelado: 'Cancelado',
-  reembolsado: 'Reembolsado'
-}
 
 export default function AdminPedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
@@ -43,12 +34,18 @@ export default function AdminPedidos() {
       }
     }
 
-    // Al marcar como pagado, descontamos stock (idempotente: solo si no estaba ya pagado).
+    // Al marcar como pagado, descontamos stock (idempotente: solo si no estaba ya pagado)
+    // y avisamos al cliente por mail.
     if (nuevoEstado === 'pagado' && pedido.estadoPago !== 'pagado') {
       for (const item of pedido.productos) {
         const producto = await obtenerProducto(item.productoId)
         if (producto) await actualizarProducto(item.productoId, { stockActual: Math.max(0, producto.stockActual - item.cantidad) })
       }
+      fetch('/.netlify/functions/notificar-pago-confirmado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedidoId: pedido.id })
+      }).catch(() => {})
     }
 
     await actualizarPedido(pedido.id, cambios)
@@ -74,7 +71,7 @@ export default function AdminPedidos() {
               <td>{p.cliente}</td>
               <td>{formatearPrecio(p.total)}</td>
               <td>{p.metodoPago}</td>
-              <td><span className="admin-badge-estado">{ETIQUETAS[p.estadoPedido]}</span></td>
+              <td><span className={`admin-badge-estado ${COLOR_ESTADO[p.estadoPedido]}`}>{ETIQUETAS_ESTADO[p.estadoPedido]}</span></td>
               <td>{new Date(p.fechaCreacion).toLocaleDateString('es-AR')}</td>
               <td><button className="admin-accion-link" onClick={() => { setSeleccionado(p); setTracking(p.trackingManual ?? ''); setOperador(p.operadorManual ?? '') }}>Ver detalle</button></td>
             </tr>
@@ -97,7 +94,7 @@ export default function AdminPedidos() {
           <div>
             <label>Cambiar estado del pedido</label>
             <select value={seleccionado.estadoPedido} onChange={(e) => cambiarEstado(seleccionado, e.target.value as EstadoPedido)}>
-              {ESTADOS.map((e) => <option key={e} value={e}>{ETIQUETAS[e]}</option>)}
+              {ESTADOS.map((e) => <option key={e} value={e}>{ETIQUETAS_ESTADO[e]}</option>)}
             </select>
           </div>
 
@@ -106,7 +103,7 @@ export default function AdminPedidos() {
 
           <div className="admin-form-acciones">
             <button className="admin-accion-link" onClick={() => guardarTracking(seleccionado)}>Guardar tracking/operador</button>
-            <button className="admin-accion-link" onClick={() => window.open(`https://wa.me/${seleccionado.whatsapp}`, '_blank')}>Contactar por WhatsApp</button>
+            <button className="admin-accion-link" onClick={() => window.open(linkWhatsapp(seleccionado.whatsapp), '_blank')}>Contactar por WhatsApp</button>
             <button className="admin-accion-link admin-accion-link--peligro" onClick={() => setSeleccionado(null)}>Cerrar</button>
           </div>
         </div>

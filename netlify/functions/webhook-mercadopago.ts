@@ -1,5 +1,6 @@
 import type { Handler } from '@netlify/functions'
 import { obtenerDb } from './_lib/firebaseAdmin'
+import { enviarEmail, plantillaPagoConfirmado } from './_lib/email'
 
 // Recibe la notificación de Mercado Pago cuando cambia el estado de un pago.
 //
@@ -90,6 +91,18 @@ export const handler: Handler = async (event) => {
   })
 
   await yaProcesadoRef.set({ procesadoEn: new Date().toISOString(), pedidoId })
+
+  const pedidoActualizado = await pedidoRef.get()
+  if (pedidoActualizado.exists) {
+    const configSnap = await db.collection('configuracion').doc('general').get()
+    const nombreTienda = configSnap.exists ? (configSnap.data() as any)?.tienda?.nombre : 'FlowwVR'
+    const pedido = { id: pedidoId, ...pedidoActualizado.data() } as any
+    await enviarEmail({
+      to: pedido.email,
+      subject: `¡Tu pago fue confirmado! Pedido #${pedidoId} — ${nombreTienda}`,
+      html: plantillaPagoConfirmado(pedido, nombreTienda)
+    })
+  }
 
   return { statusCode: 200, body: 'ok' }
 }

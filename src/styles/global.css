@@ -116,3 +116,9 @@ img {
   outline: 2px solid var(--accent-flame);
   outline-offset: 2px;
 }
+
+/* Colores de estado de pedido, compartidos entre admin y seguimiento público */
+.estado--pendiente { background: var(--warn); color: #0a0a0b; }
+.estado--ok { background: var(--ok); color: #0a0a0b; }
+.estado--info { background: #2fb8ff; color: #0a0a0b; }
+.estado--error { background: var(--error); color: #0a0a0b; }

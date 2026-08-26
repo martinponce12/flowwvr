@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge'
 import { obtenerProducto } from '@/services/datos/productos'
 import { obtenerConfiguracion } from '@/services/datos/configuracion'
 import { useCarrito } from '@/store/carrito'
+import { linkWhatsapp } from '@/utils/whatsapp'
 import { formatearPrecio } from '@/utils/formato'
 import type { Producto, Configuracion } from '@/types'
 import './detalle-producto.css'
@@ -39,7 +40,7 @@ export default function DetalleProducto() {
   }
 
   const sinStock = producto.stockActual <= 0
-  const linkWhatsapp = config ? `https://wa.me/${config.tienda.whatsapp}?text=${encodeURIComponent(`Hola! Quiero personalizar el ${producto.nombre}`)}` : '#'
+  const linkWa = config ? linkWhatsapp(config.tienda.whatsapp, `Hola! Quiero personalizar el ${producto.nombre}`) : '#'
 
   return (
     <LayoutTienda>
@@ -85,7 +86,7 @@ export default function DetalleProducto() {
             </button>
           )}
 
-          <a href={linkWhatsapp} target="_blank" rel="noreferrer" className="detalle-producto__personalizar">
+          <a href={linkWa} target="_blank" rel="noreferrer" className="detalle-producto__personalizar">
             ✨ ¿Querés personalizarlo? Escribinos por WhatsApp
           </a>
         </div>

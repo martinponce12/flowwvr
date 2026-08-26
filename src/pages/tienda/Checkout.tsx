@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import LayoutTienda from '@/components/layout/LayoutTienda'
 import Boton from '@/components/ui/Boton'
 import { useCarrito } from '@/store/carrito'
@@ -7,6 +7,7 @@ import { listarZonasEnvio, encontrarZonaPorProvincia } from '@/services/datos/zo
 import { obtenerConfiguracion } from '@/services/datos/configuracion'
 import { crearPedido } from '@/services/datos/pedidos'
 import { formatearPrecio } from '@/utils/formato'
+import { linkWhatsapp } from '@/utils/whatsapp'
 import type { ZonaEnvio, Configuracion, Promocion, DireccionEnvio } from '@/types'
 import './checkout.css'
 
@@ -26,7 +27,8 @@ export default function Checkout() {
     mercadoPagoDisponible ? 'mercadopago' : 'transferencia'
   )
   const [enviando, setEnviando] = useState(false)
-  const [pedidoCreado, setPedidoCreado] = useState<string | null>(null)
+  const [errorEnvio, setErrorEnvio] = useState('')
+  const [pedidoCreado, setPedidoCreado] = useState<{ id: string; dni: string; total: number } | null>(null)
 
   const [form, setForm] = useState({
     cliente: '', dni: '', whatsapp: '', email: '', notasPersonalizacion: '',
@@ -43,6 +45,44 @@ export default function Checkout() {
   const promoAplicada = location.state?.promoAplicada
   const envioGratisPorPromo = location.state?.envioGratisPorPromo ?? false
   const zona = encontrarZonaPorProvincia(zonas, provincia)
+
+  // IMPORTANTE: este chequeo va PRIMERO, antes que cualquier otro que dependa
+  // del carrito. Al confirmar la compra vaciamos el carrito (items.length
+  // pasa a 0), así que si el chequeo de "carrito vacío" fuera antes que este,
+  // terminaría redirigiendo a /carrito justo después de comprar con éxito.
+  if (pedidoCreado && config) {
+    return (
+      <LayoutTienda>
+        <div className="contenedor checkout-exito">
+          <h1>¡Gracias por tu compra! 🔥</h1>
+          <p>Guardá este código para consultar el estado de tu pedido más adelante:</p>
+          <p className="checkout-exito__codigo">{pedidoCreado.id}</p>
+
+          {metodoPago === 'transferencia' && (
+            <div className="checkout-exito__transferencia">
+              <p className="checkout-exito__paso"><strong>1.</strong> Transferí <strong>{formatearPrecio(pedidoCreado.total)}</strong> a:</p>
+              <p className="checkout-exito__datos">
+                Alias: <strong>{config.transferencia.alias}</strong><br />
+                Titular: {config.transferencia.titular}<br />
+                Banco/billetera: {config.transferencia.bancoOBilletera}
+              </p>
+              <p className="checkout-exito__paso"><strong>2.</strong> Enviá el comprobante por WhatsApp:</p>
+              <a
+                className="checkout-exito__whatsapp"
+                href={linkWhatsapp(config.tienda.whatsapp, `Hola! Te paso el comprobante del pedido #${pedidoCreado.id}`)}
+                target="_blank" rel="noreferrer"
+              >
+                Enviar comprobante por WhatsApp
+              </a>
+              <p className="checkout-exito__paso" style={{ marginTop: 14 }}><strong>3.</strong> Te vamos a confirmar el pago por mail y ahí ya podés hacer seguimiento del envío.</p>
+            </div>
+          )}
+
+          <Link to="/seguimiento" className="checkout-exito__seguimiento">Ir a Seguí tu pedido →</Link>
+        </div>
+      </LayoutTienda>
+    )
+  }
 
   if (items.length === 0) {
     navigate('/carrito')
@@ -74,35 +114,34 @@ export default function Checkout() {
   async function confirmarPedido() {
     if (!formularioValido || !zona) return
     setEnviando(true)
+    setErrorEnvio('')
 
-    const direccion: DireccionEnvio = {
-      provincia, localidad: form.localidad, codigoPostal: form.codigoPostal,
-      calle: form.calle, numero: form.numero, piso: form.piso, referencia: form.referencia
-    }
+    try {
+      const direccion: DireccionEnvio = {
+        provincia, localidad: form.localidad, codigoPostal: form.codigoPostal,
+        calle: form.calle, numero: form.numero, piso: form.piso, referencia: form.referencia
+      }
 
-    const ahora = new Date().toISOString()
-    const id = await crearPedido({
-      cliente: form.cliente, dni: form.dni, whatsapp: form.whatsapp, email: form.email,
-      notasPersonalizacion: form.notasPersonalizacion || undefined,
-      direccion,
-      productos: items,
-      subtotal: sub,
-      promocionId: promoAplicada?.id,
-      descuento,
-      zonaEnvioId: zona.id,
-      costoEnvio,
-      total,
-      metodoPago,
-      estadoPago: metodoPago === 'transferencia' ? 'esperando_comprobante' : 'pendiente',
-      estadoPedido: metodoPago === 'transferencia' ? 'esperando_comprobante' : 'pendiente_pago',
-      fechaCreacion: ahora,
-      fechaActualizacion: ahora
-    })
+      const ahora = new Date().toISOString()
+      const id = await crearPedido({
+        cliente: form.cliente, dni: form.dni, whatsapp: form.whatsapp, email: form.email,
+        notasPersonalizacion: form.notasPersonalizacion || undefined,
+        direccion,
+        productos: items,
+        subtotal: sub,
+        promocionId: promoAplicada?.id,
+        descuento,
+        zonaEnvioId: zona.id,
+        costoEnvio,
+        total,
+        metodoPago,
+        estadoPago: metodoPago === 'transferencia' ? 'esperando_comprobante' : 'pendiente',
+        estadoPedido: metodoPago === 'transferencia' ? 'esperando_comprobante' : 'pendiente_pago',
+        fechaCreacion: ahora,
+        fechaActualizacion: ahora
+      })
 
-    if (metodoPago === 'mercadopago') {
-      // Fase 6: llamar a /.netlify/functions/crear-preferencia-pago con { pedidoId: id }
-      // y redirigir a la respuesta.linkPago. Placeholder mientras tanto:
-      try {
+      if (metodoPago === 'mercadopago') {
         const resp = await fetch('/.netlify/functions/crear-preferencia-pago', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,44 +149,32 @@ export default function Checkout() {
         })
         const data = await resp.json()
         if (data.linkPago) {
+          fetch('/.netlify/functions/notificar-pedido-creado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pedidoId: id })
+          }).catch(() => {})
           vaciar()
           window.location.href = data.linkPago
           return
         }
-      } catch {
-        // si falla, dejamos ver la pantalla de confirmación igual
+        throw new Error('No pudimos generar el link de pago')
       }
+
+      vaciar()
+      setPedidoCreado({ id, dni: form.dni, total })
+
+      // Fire-and-forget: si el mail falla, no debe afectar la compra ya confirmada.
+      fetch('/.netlify/functions/notificar-pedido-creado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedidoId: id })
+      }).catch(() => {})
+    } catch {
+      setErrorEnvio('No pudimos registrar tu pedido. Revisá tu conexión e intentá de nuevo. Si el problema sigue, escribinos por WhatsApp.')
+    } finally {
+      setEnviando(false)
     }
-
-    vaciar()
-    setPedidoCreado(id)
-    setEnviando(false)
-  }
-
-  if (pedidoCreado && config) {
-    return (
-      <LayoutTienda>
-        <div className="contenedor checkout-exito">
-          <h1>¡Gracias por tu compra! 🔥</h1>
-          <p>Tu pedido <strong>#{pedidoCreado}</strong> quedó registrado.</p>
-          {metodoPago === 'transferencia' && (
-            <div className="checkout-exito__transferencia">
-              <p>Transferí <strong>{formatearPrecio(total)}</strong> a:</p>
-              <p>Alias: <strong>{config.transferencia.alias}</strong></p>
-              <p>Titular: {config.transferencia.titular}</p>
-              <p>Banco/billetera: {config.transferencia.bancoOBilletera}</p>
-              <a
-                className="checkout-exito__whatsapp"
-                href={`https://wa.me/${config.tienda.whatsapp}?text=${encodeURIComponent(`Hola! Te paso el comprobante del pedido #${pedidoCreado}`)}`}
-                target="_blank" rel="noreferrer"
-              >
-                Enviar comprobante por WhatsApp
-              </a>
-            </div>
-          )}
-        </div>
-      </LayoutTienda>
-    )
   }
 
   return (
@@ -214,6 +241,8 @@ export default function Checkout() {
           <div className="carrito__fila"><span>Envío ({zona.nombre})</span><span>{formatearPrecio(costoEnvio)}</span></div>
           <div className="carrito__fila carrito__fila--total"><span>Total</span><span>{formatearPrecio(total)}</span></div>
         </div>
+
+        {errorEnvio && <p className="checkout__error">{errorEnvio}</p>}
 
         <Boton disabled={!formularioValido || enviando} onClick={confirmarPedido}>
           {enviando ? 'Procesando...' : metodoPago === 'mercadopago' ? 'Ir a pagar' : 'Confirmar pedido'}

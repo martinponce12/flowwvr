@@ -30,7 +30,13 @@ export default function AdminConfiguracion() {
         <h2 style={{ fontSize: '0.95rem', color: 'var(--fg-muted)' }}>Negocio</h2>
         <div><label>Nombre</label><input value={config.tienda.nombre} onChange={(e) => setConfig({ ...config, tienda: { ...config.tienda, nombre: e.target.value } })} /></div>
         <div><label>Tagline</label><input value={config.tienda.tagline ?? ''} onChange={(e) => setConfig({ ...config, tienda: { ...config.tienda, tagline: e.target.value } })} /></div>
-        <div><label>WhatsApp (con código de país, sin +, ej: 5491100000000)</label><input value={config.tienda.whatsapp} onChange={(e) => setConfig({ ...config, tienda: { ...config.tienda, whatsapp: e.target.value } })} /></div>
+        <div>
+          <label>WhatsApp</label>
+          <input value={config.tienda.whatsapp} onChange={(e) => setConfig({ ...config, tienda: { ...config.tienda, whatsapp: e.target.value } })} placeholder="Ej: 1140848518 o 5491140848518" />
+          <p style={{ fontSize: '0.75rem', color: 'var(--fg-muted)', marginTop: 4 }}>
+            Podés escribirlo como lo marcás normalmente (con o sin 0 y 15) — el sitio lo convierte solo al formato que necesita WhatsApp.
+          </p>
+        </div>
         <div><label>Instagram (usuario, sin @)</label><input value={config.tienda.instagram} onChange={(e) => setConfig({ ...config, tienda: { ...config.tienda, instagram: e.target.value } })} /></div>
         <div><label>Email de contacto</label><input value={config.tienda.email} onChange={(e) => setConfig({ ...config, tienda: { ...config.tienda, email: e.target.value } })} /></div>
       </div>

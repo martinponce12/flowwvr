@@ -61,7 +61,13 @@ te indico. Yo ya dejé el código preparado para leerlas.
    muestre la opción de tarjeta. Si lo dejás en `false`, el checkout solo
    ofrece transferencia/alias (cero riesgo, cero integración activa).
 
-### 4. Dónde va cada credencial
+### 4. Resend (emails de confirmación de pedido y de pago)
+1. `resend.com` → crear cuenta gratis (plan gratis: 3.000 emails/mes, sin tarjeta).
+2. API Keys → "Create API Key" → copiar el valor → pegarlo en Netlify como `RESEND_API_KEY`.
+3. Mientras no verifiques un dominio propio en Resend, los mails salen desde `onboarding@resend.dev` (funciona igual, solo que el remitente no dice "flowwvr.com"). Podés dejar `RESEND_FROM_EMAIL` vacío por ahora.
+4. Si más adelante compran un dominio propio, en Resend → Domains → agregarlo y verificarlo, y ahí sí cargar `RESEND_FROM_EMAIL=FlowwVR <hola@flowwvr.com>`.
+
+### 5. Dónde va cada credencial
 
 | Variable | Dónde se carga |
 |---|---|
@@ -70,6 +76,8 @@ te indico. Yo ya dejé el código preparado para leerlas.
 | `VITE_STORAGE_HABILITADO` | `.env` local y Netlify → Environment variables (`false` hasta que actives Blaze + Storage) |
 | `MERCADOPAGO_ACCESS_TOKEN` | Solo Netlify → Environment variables (nunca en el código) |
 | `FIREBASE_ADMIN_*` | Solo Netlify → Environment variables (nunca en el código) |
+| `RESEND_API_KEY` | Solo Netlify → Environment variables (opcional; sin esto no se mandan mails) |
+| `RESEND_FROM_EMAIL` | Solo Netlify → Environment variables (opcional) |
 
 ---
 

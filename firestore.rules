@@ -30,12 +30,19 @@ service cloud.firestore {
       allow write: if esAdmin();
     }
 
-    // Pedidos: el cliente NO lee/escribe directo. Todo pasa por Netlify Functions
-    // con Firebase Admin SDK (que ignora estas reglas). Esto evita que un cliente
-    // pueda leer pedidos de otro cliente o falsificar un estado de pago.
+    // Pedidos: cualquier visitante (aunque no esté logueado) puede CREAR un
+    // pedido al hacer checkout — es el flujo normal de una tienda online.
+    // Pero solo el admin puede LEER la lista completa, editar o borrar, para
+    // que un cliente nunca pueda ver pedidos ajenos ni cambiar un estado.
+    // La consulta pública de "mi pedido" (sección Seguimiento) no usa esta
+    // regla: pasa por una Netlify Function con Firebase Admin SDK, que
+    // valida DNI + ID de pedido antes de devolver el estado.
     match /pedidos/{pedidoId} {
-      allow read: if esAdmin();
-      allow write: if esAdmin();
+      allow create: if request.resource.data.cliente is string &&
+        request.resource.data.dni is string &&
+        request.resource.data.total is number &&
+        request.resource.data.estadoPedido in ['pendiente_pago', 'esperando_comprobante'];
+      allow read, update, delete: if esAdmin();
     }
 
     match /configuracion/{docId} {

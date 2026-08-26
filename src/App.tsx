@@ -8,6 +8,7 @@ import Carrito from './pages/tienda/Carrito'
 import Checkout from './pages/tienda/Checkout'
 import Legales from './pages/tienda/Legales'
 import ResultadoPago from './pages/tienda/ResultadoPago'
+import Seguimiento from './pages/tienda/Seguimiento'
 
 // Páginas del panel admin (protegidas)
 import AdminLogin from './pages/admin/Login'
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/legales/:pagina" element={<Legales />} />
         <Route path="/checkout/:estado" element={<ResultadoPago />} />
+        <Route path="/seguimiento" element={<Seguimiento />} />
 
         {/* Admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
