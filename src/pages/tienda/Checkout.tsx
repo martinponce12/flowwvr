@@ -72,7 +72,7 @@ export default function Checkout() {
     form.aceptaLegales
 
   async function confirmarPedido() {
-    if (!formularioValido) return
+    if (!formularioValido || !zona) return
     setEnviando(true)
 
     const direccion: DireccionEnvio = {

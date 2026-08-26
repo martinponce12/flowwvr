@@ -25,7 +25,7 @@ export default function Inicio() {
         <div className="hero__cuadrille cuadrille" aria-hidden="true" />
         <div className="contenedor hero__contenido">
           <img src="/logo.png" alt="FlowwVR" className="hero__logo" />
-          <p className="hero__tagline">{config?.tagline ?? config?.tienda.tagline}</p>
+          <p className="hero__tagline">{config?.tienda.tagline}</p>
           <Link to="/catalogo">
             <Boton>Ver catálogo</Boton>
           </Link>
