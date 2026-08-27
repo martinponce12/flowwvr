@@ -2,6 +2,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where
 } from 'firebase/firestore'
 import { db, modoDemo } from '../firebase/config'
+import { limpiarUndefined } from '@/utils/firestoreHelpers'
 import { productosMock } from '@/data/mock'
 import type { Producto } from '@/types'
 
@@ -36,7 +37,7 @@ export async function crearProducto(producto: Omit<Producto, 'id'>): Promise<str
     demoData = [...demoData, { ...producto, id }]
     return id
   }
-  const ref = await addDoc(collection(db, COL), producto)
+  const ref = await addDoc(collection(db, COL), limpiarUndefined(producto))
   return ref.id
 }
 
@@ -45,7 +46,7 @@ export async function actualizarProducto(id: string, cambios: Partial<Producto>)
     demoData = demoData.map((p) => (p.id === id ? { ...p, ...cambios } : p))
     return
   }
-  await updateDoc(doc(db, COL, id), cambios)
+  await updateDoc(doc(db, COL, id), limpiarUndefined(cambios))
 }
 
 export async function eliminarProducto(id: string): Promise<void> {

@@ -1,5 +1,6 @@
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, orderBy, query } from 'firebase/firestore'
+import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, orderBy, query } from 'firebase/firestore'
 import { db, modoDemo } from '../firebase/config'
+import { limpiarUndefined } from '@/utils/firestoreHelpers'
 import type { Pedido } from '@/types'
 
 const COL = 'pedidos'
@@ -15,7 +16,7 @@ export async function crearPedido(pedido: Omit<Pedido, 'id'>): Promise<string> {
     demoData = [...demoData, { ...pedido, id }]
     return id
   }
-  const ref = await addDoc(collection(db, COL), pedido)
+  const ref = await addDoc(collection(db, COL), limpiarUndefined(pedido))
   return ref.id
 }
 
@@ -37,5 +38,13 @@ export async function actualizarPedido(id: string, cambios: Partial<Pedido>): Pr
     demoData = demoData.map((p) => (p.id === id ? { ...p, ...cambios } : p))
     return
   }
-  await updateDoc(doc(db, COL, id), cambios)
+  await updateDoc(doc(db, COL, id), limpiarUndefined(cambios))
+}
+
+export async function eliminarPedido(id: string): Promise<void> {
+  if (modoDemo || !db) {
+    demoData = demoData.filter((p) => p.id !== id)
+    return
+  }
+  await deleteDoc(doc(db, COL, id))
 }

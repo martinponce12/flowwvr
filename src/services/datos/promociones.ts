@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore'
 import { db, modoDemo } from '../firebase/config'
+import { limpiarUndefined } from '@/utils/firestoreHelpers'
 import { promocionesMock } from '@/data/mock'
 import type { Promocion } from '@/types'
 
@@ -30,7 +31,7 @@ export async function crearPromocion(promo: Omit<Promocion, 'id'>): Promise<stri
     demoData = [...demoData, { ...promo, id }]
     return id
   }
-  const ref = await addDoc(collection(db, COL), promo)
+  const ref = await addDoc(collection(db, COL), limpiarUndefined(promo))
   return ref.id
 }
 
@@ -39,7 +40,7 @@ export async function actualizarPromocion(id: string, cambios: Partial<Promocion
     demoData = demoData.map((p) => (p.id === id ? { ...p, ...cambios } : p))
     return
   }
-  await updateDoc(doc(db, COL, id), cambios)
+  await updateDoc(doc(db, COL, id), limpiarUndefined(cambios))
 }
 
 export async function eliminarPromocion(id: string): Promise<void> {

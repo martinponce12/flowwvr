@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db, modoDemo } from '../firebase/config'
+import { limpiarUndefined } from '@/utils/firestoreHelpers'
 import { categoriasMock } from '@/data/mock'
 import type { Categoria } from '@/types'
 
@@ -18,7 +19,7 @@ export async function crearCategoria(categoria: Omit<Categoria, 'id'>): Promise<
     demoData = [...demoData, { ...categoria, id }]
     return id
   }
-  const ref = await addDoc(collection(db, COL), categoria)
+  const ref = await addDoc(collection(db, COL), limpiarUndefined(categoria))
   return ref.id
 }
 
@@ -27,7 +28,7 @@ export async function actualizarCategoria(id: string, cambios: Partial<Categoria
     demoData = demoData.map((c) => (c.id === id ? { ...c, ...cambios } : c))
     return
   }
-  await updateDoc(doc(db, COL, id), cambios)
+  await updateDoc(doc(db, COL, id), limpiarUndefined(cambios))
 }
 
 export async function eliminarCategoria(id: string): Promise<void> {

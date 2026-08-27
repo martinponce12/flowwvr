@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import LayoutAdmin from '@/components/admin/LayoutAdmin'
-import { listarPedidos, actualizarPedido } from '@/services/datos/pedidos'
+import { listarPedidos, actualizarPedido, eliminarPedido } from '@/services/datos/pedidos'
 import { actualizarProducto, obtenerProducto } from '@/services/datos/productos'
 import { linkWhatsapp } from '@/utils/whatsapp'
 import { ETIQUETAS_ESTADO, COLOR_ESTADO } from '@/utils/estadosPedido'
@@ -59,6 +59,26 @@ export default function AdminPedidos() {
     setSeleccionado(null)
   }
 
+  async function borrarPedido(pedido: Pedido) {
+    const advertencia = pedido.estadoPago === 'pagado'
+      ? 'Este pedido ya está pagado. Al eliminarlo se repone el stock de sus productos automáticamente. ¿Confirmás que querés eliminarlo?'
+      : '¿Eliminar este pedido? Esta acción no se puede deshacer.'
+    if (!confirm(advertencia)) return
+
+    // Si el pedido ya había descontado stock, lo reponemos antes de borrar
+    // para que ese stock no quede "perdido".
+    if (pedido.estadoPago === 'pagado') {
+      for (const item of pedido.productos) {
+        const producto = await obtenerProducto(item.productoId)
+        if (producto) await actualizarProducto(item.productoId, { stockActual: producto.stockActual + item.cantidad })
+      }
+    }
+
+    await eliminarPedido(pedido.id)
+    cargar()
+    setSeleccionado(null)
+  }
+
   return (
     <LayoutAdmin>
       <h1 className="admin-titulo">Pedidos</h1>
@@ -73,7 +93,11 @@ export default function AdminPedidos() {
               <td>{p.metodoPago}</td>
               <td><span className={`admin-badge-estado ${COLOR_ESTADO[p.estadoPedido]}`}>{ETIQUETAS_ESTADO[p.estadoPedido]}</span></td>
               <td>{new Date(p.fechaCreacion).toLocaleDateString('es-AR')}</td>
-              <td><button className="admin-accion-link" onClick={() => { setSeleccionado(p); setTracking(p.trackingManual ?? ''); setOperador(p.operadorManual ?? '') }}>Ver detalle</button></td>
+              <td>
+                <button className="admin-accion-link" onClick={() => { setSeleccionado(p); setTracking(p.trackingManual ?? ''); setOperador(p.operadorManual ?? '') }}>Ver detalle</button>
+                {' · '}
+                <button className="admin-accion-link admin-accion-link--peligro" onClick={() => borrarPedido(p)}>Eliminar</button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -104,6 +128,7 @@ export default function AdminPedidos() {
           <div className="admin-form-acciones">
             <button className="admin-accion-link" onClick={() => guardarTracking(seleccionado)}>Guardar tracking/operador</button>
             <button className="admin-accion-link" onClick={() => window.open(linkWhatsapp(seleccionado.whatsapp), '_blank')}>Contactar por WhatsApp</button>
+            <button className="admin-accion-link admin-accion-link--peligro" onClick={() => borrarPedido(seleccionado)}>Eliminar pedido</button>
             <button className="admin-accion-link admin-accion-link--peligro" onClick={() => setSeleccionado(null)}>Cerrar</button>
           </div>
         </div>

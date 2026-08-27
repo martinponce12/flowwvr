@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db, modoDemo } from '../firebase/config'
+import { limpiarUndefined } from '@/utils/firestoreHelpers'
 import { zonasEnvioMock } from '@/data/mock'
 import type { ZonaEnvio } from '@/types'
 
@@ -18,7 +19,7 @@ export async function crearZonaEnvio(zona: Omit<ZonaEnvio, 'id'>): Promise<strin
     demoData = [...demoData, { ...zona, id }]
     return id
   }
-  const ref = await addDoc(collection(db, COL), zona)
+  const ref = await addDoc(collection(db, COL), limpiarUndefined(zona))
   return ref.id
 }
 
@@ -27,7 +28,7 @@ export async function actualizarZonaEnvio(id: string, cambios: Partial<ZonaEnvio
     demoData = demoData.map((z) => (z.id === id ? { ...z, ...cambios } : z))
     return
   }
-  await updateDoc(doc(db, COL, id), cambios)
+  await updateDoc(doc(db, COL, id), limpiarUndefined(cambios))
 }
 
 export async function eliminarZonaEnvio(id: string): Promise<void> {

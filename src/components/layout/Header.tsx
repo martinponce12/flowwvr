@@ -14,6 +14,7 @@ export default function Header() {
 
         <nav className="header__nav">
           <Link to="/catalogo">Catálogo</Link>
+          <Link to="/seguimiento">Mi pedido</Link>
         </nav>
 
         <Link to="/carrito" className="header__carrito" aria-label="Ver carrito">
