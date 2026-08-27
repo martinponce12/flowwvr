@@ -7,7 +7,7 @@ import { listarZonasEnvio, encontrarZonaPorProvincia } from '@/services/datos/zo
 import { obtenerConfiguracion } from '@/services/datos/configuracion'
 import { crearPedido } from '@/services/datos/pedidos'
 import { formatearPrecio } from '@/utils/formato'
-import { linkWhatsapp } from '@/utils/whatsapp'
+import { linkWhatsapp, normalizarWhatsappAR } from '@/utils/whatsapp'
 import type { ZonaEnvio, Configuracion, Promocion, DireccionEnvio } from '@/types'
 import './checkout.css'
 
@@ -47,10 +47,13 @@ export default function Checkout() {
   const zona = encontrarZonaPorProvincia(zonas, provincia)
 
   // IMPORTANTE: este chequeo va PRIMERO, antes que cualquier otro que dependa
-  // del carrito. Al confirmar la compra vaciamos el carrito (items.length
-  // pasa a 0), así que si el chequeo de "carrito vacío" fuera antes que este,
-  // terminaría redirigiendo a /carrito justo después de comprar con éxito.
-  if (pedidoCreado && config) {
+  // del carrito, y depende SOLO de pedidoCreado (no de config). Al confirmar
+  // la compra vaciamos el carrito (items.length pasa a 0); si este bloque
+  // exigiera también que `config` ya haya cargado, una carrera de timing
+  // podría hacer que cayera en el chequeo de "carrito vacío" de más abajo y
+  // te mandara de vuelta sin mostrar nada. Por eso acá adentro contemplamos
+  // el caso de config todavía cargando por separado.
+  if (pedidoCreado) {
     return (
       <LayoutTienda>
         <div className="contenedor checkout-exito">
@@ -58,7 +61,9 @@ export default function Checkout() {
           <p>Guardá este código para consultar el estado de tu pedido más adelante:</p>
           <p className="checkout-exito__codigo">{pedidoCreado.id}</p>
 
-          {metodoPago === 'transferencia' && (
+          {!config && <p style={{ color: 'var(--fg-muted)' }}>Cargando los datos de pago...</p>}
+
+          {config && metodoPago === 'transferencia' && (
             <div className="checkout-exito__transferencia">
               <p className="checkout-exito__paso"><strong>1.</strong> Transferí <strong>{formatearPrecio(pedidoCreado.total)}</strong> a:</p>
               <p className="checkout-exito__datos">
@@ -106,8 +111,20 @@ export default function Checkout() {
     setForm((f) => ({ ...f, [campo]: valor }))
   }
 
+  // El WhatsApp del cliente se guarda SOLO con los dígitos locales (código de
+  // área + número, sin 54/9): el prefijo "+54 9" queda fijo en pantalla para
+  // que el cliente no pueda olvidarlo ni escribirlo mal — el mismo problema
+  // que causaba que los links de WhatsApp no encontraran el número.
+  const dniValido = /^\d{7,8}$/.test(form.dni)
+  const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+  const whatsappValido = /^\d{8,10}$/.test(form.whatsapp)
+
+  const mostrarErrorDni = form.dni.length > 0 && !dniValido
+  const mostrarErrorEmail = form.email.length > 0 && !emailValido
+  const mostrarErrorWhatsapp = form.whatsapp.length > 0 && !whatsappValido
+
   const formularioValido =
-    form.cliente && form.dni && form.whatsapp && form.email &&
+    form.cliente && dniValido && whatsappValido && emailValido &&
     form.localidad && form.codigoPostal && form.calle && form.numero &&
     form.aceptaLegales
 
@@ -124,7 +141,7 @@ export default function Checkout() {
 
       const ahora = new Date().toISOString()
       const id = await crearPedido({
-        cliente: form.cliente, dni: form.dni, whatsapp: form.whatsapp, email: form.email,
+        cliente: form.cliente, dni: form.dni, whatsapp: normalizarWhatsappAR(form.whatsapp), email: form.email,
         notasPersonalizacion: form.notasPersonalizacion || undefined,
         direccion,
         productos: items,
@@ -186,9 +203,41 @@ export default function Checkout() {
           <h2>Tus datos</h2>
           <div className="checkout__grid">
             <input placeholder="Nombre y apellido" value={form.cliente} onChange={(e) => actualizarCampo('cliente', e.target.value)} />
-            <input placeholder="DNI" value={form.dni} onChange={(e) => actualizarCampo('dni', e.target.value)} />
-            <input placeholder="WhatsApp" value={form.whatsapp} onChange={(e) => actualizarCampo('whatsapp', e.target.value)} />
-            <input placeholder="Email" type="email" value={form.email} onChange={(e) => actualizarCampo('email', e.target.value)} />
+            <div>
+              <input
+                placeholder="DNI (sin puntos)"
+                inputMode="numeric"
+                maxLength={8}
+                value={form.dni}
+                onChange={(e) => actualizarCampo('dni', e.target.value.replace(/\D/g, ''))}
+                className={mostrarErrorDni ? 'checkout__input--error' : ''}
+              />
+              {mostrarErrorDni && <p className="checkout__campo-error">El DNI debe tener 7 u 8 números, sin puntos.</p>}
+            </div>
+            <div>
+              <div className="checkout__whatsapp-wrap">
+                <span className="checkout__whatsapp-prefijo">+54 9</span>
+                <input
+                  placeholder="1140848518"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={form.whatsapp}
+                  onChange={(e) => actualizarCampo('whatsapp', e.target.value.replace(/\D/g, ''))}
+                  className={mostrarErrorWhatsapp ? 'checkout__input--error' : ''}
+                />
+              </div>
+              {mostrarErrorWhatsapp && <p className="checkout__campo-error">Ingresá tu número sin el 0 ni el 15 (ej: código de área + número).</p>}
+            </div>
+            <div>
+              <input
+                placeholder="Email"
+                type="email"
+                value={form.email}
+                onChange={(e) => actualizarCampo('email', e.target.value)}
+                className={mostrarErrorEmail ? 'checkout__input--error' : ''}
+              />
+              {mostrarErrorEmail && <p className="checkout__campo-error">Revisá el formato del email (ej: nombre@mail.com).</p>}
+            </div>
           </div>
         </section>
 

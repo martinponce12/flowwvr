@@ -10,6 +10,20 @@
 }
 .checkout__seccion textarea { min-height: 80px; resize: vertical; }
 
+.checkout__input--error { border-color: var(--error) !important; }
+.checkout__campo-error { color: var(--error); font-size: 0.75rem; margin-top: 4px; }
+
+.checkout__whatsapp-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-surface); border: 1px solid var(--borde); border-radius: var(--radio-chico);
+  padding: 0 4px 0 12px;
+}
+.checkout__whatsapp-wrap input {
+  border: none !important; background: transparent !important; padding: 12px 12px 12px 0 !important;
+}
+.checkout__whatsapp-prefijo { color: var(--fg-muted); font-size: 0.9rem; white-space: nowrap; }
+.checkout__whatsapp-wrap:has(.checkout__input--error) { border-color: var(--error); }
+
 .checkout__pago-opciones { display: flex; flex-direction: column; gap: 10px; }
 .checkout__pago-opcion {
   display: flex; align-items: center; gap: 10px;
