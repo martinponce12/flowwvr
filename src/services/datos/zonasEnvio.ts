@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore'
 import { db, modoDemo } from '../firebase/config'
 import { limpiarUndefined } from '@/utils/firestoreHelpers'
 import { zonasEnvioMock } from '@/data/mock'
@@ -7,9 +7,26 @@ import type { ZonaEnvio } from '@/types'
 const COL = 'zonasEnvio'
 let demoData: ZonaEnvio[] = [...zonasEnvioMock]
 
+// Uso ADMIN: trae todas las zonas (activas e inactivas) para poder
+// gestionarlas. Solo funciona para un usuario admin logueado — para un
+// cliente anónimo, Firestore rechaza esta consulta sin filtrar porque la
+// regla de seguridad depende del campo `activa` (ver listarZonasEnvioActivas).
 export async function listarZonasEnvio(): Promise<ZonaEnvio[]> {
   if (modoDemo || !db) return demoData
   const snap = await getDocs(collection(db, COL))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ZonaEnvio)
+}
+
+// Uso PÚBLICO (carrito/checkout): trae solo las zonas activas, con un
+// filtro `where('activa', '==', true)` que coincide exactamente con la
+// condición de la security rule. Es necesario que la consulta incluya ese
+// mismo filtro — si se pide la colección sin filtrar, Firestore rechaza la
+// consulta completa para un cliente no-admin, aunque todos los documentos
+// cumplan la condición igual.
+export async function listarZonasEnvioActivas(): Promise<ZonaEnvio[]> {
+  if (modoDemo || !db) return demoData.filter((z) => z.activa)
+  const q = query(collection(db, COL), where('activa', '==', true))
+  const snap = await getDocs(q)
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ZonaEnvio)
 }
 

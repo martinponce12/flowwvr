@@ -4,7 +4,7 @@ import LayoutTienda from '@/components/layout/LayoutTienda'
 import ImagenProducto from '@/components/ui/ImagenProducto'
 import Boton from '@/components/ui/Boton'
 import { useCarrito } from '@/store/carrito'
-import { listarZonasEnvio, encontrarZonaPorProvincia } from '@/services/datos/zonasEnvio'
+import { listarZonasEnvioActivas, encontrarZonaPorProvincia } from '@/services/datos/zonasEnvio'
 import { buscarPromocionPorCodigo } from '@/services/datos/promociones'
 import { formatearPrecio } from '@/utils/formato'
 import type { ZonaEnvio, Promocion } from '@/types'
@@ -27,7 +27,7 @@ export default function Carrito() {
   const [errorPromo, setErrorPromo] = useState('')
 
   useEffect(() => {
-    listarZonasEnvio().then(setZonas)
+    listarZonasEnvioActivas().then(setZonas)
   }, [])
 
   const zonaSeleccionada = provincia ? encontrarZonaPorProvincia(zonas, provincia) : null

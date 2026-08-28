@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import LayoutTienda from '@/components/layout/LayoutTienda'
 import Boton from '@/components/ui/Boton'
 import { useCarrito } from '@/store/carrito'
-import { listarZonasEnvio, encontrarZonaPorProvincia } from '@/services/datos/zonasEnvio'
+import { listarZonasEnvioActivas, encontrarZonaPorProvincia } from '@/services/datos/zonasEnvio'
 import { obtenerConfiguracion } from '@/services/datos/configuracion'
 import { crearPedido } from '@/services/datos/pedidos'
 import { formatearPrecio } from '@/utils/formato'
@@ -37,7 +37,7 @@ export default function Checkout() {
   })
 
   useEffect(() => {
-    listarZonasEnvio().then(setZonas)
+    listarZonasEnvioActivas().then(setZonas)
     obtenerConfiguracion().then(setConfig)
   }, [])
 
