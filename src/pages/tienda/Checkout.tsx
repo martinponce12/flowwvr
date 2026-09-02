@@ -11,10 +11,6 @@ import { linkWhatsapp, normalizarWhatsappAR } from '@/utils/whatsapp'
 import type { ZonaEnvio, Configuracion, Promocion, DireccionEnvio } from '@/types'
 import './checkout.css'
 
-// El Access Token de Mercado Pago solo existe del lado del servidor. Acá en
-// el frontend detectamos si la integración está disponible consultando esta
-// variable pública (se define en Fase 6 vía Netlify: VITE_MP_HABILITADO=true
-// una vez que exista MERCADOPAGO_ACCESS_TOKEN configurado del lado server).
 const mercadoPagoDisponible = import.meta.env.VITE_MP_HABILITADO === 'true'
 
 export default function Checkout() {
@@ -22,6 +18,7 @@ export default function Checkout() {
   const navigate = useNavigate()
   const { items, subtotal, vaciar } = useCarrito()
   const [zonas, setZonas] = useState<ZonaEnvio[]>([])
+  const [zonasCargadas, setZonasCargadas] = useState(false)
   const [config, setConfig] = useState<Configuracion | null>(null)
   const [metodoPago, setMetodoPago] = useState<'mercadopago' | 'transferencia'>(
     mercadoPagoDisponible ? 'mercadopago' : 'transferencia'
@@ -37,7 +34,7 @@ export default function Checkout() {
   })
 
   useEffect(() => {
-    listarZonasEnvioActivas().then(setZonas)
+    listarZonasEnvioActivas().then((z) => { setZonas(z); setZonasCargadas(true) })
     obtenerConfiguracion().then(setConfig)
   }, [])
 
@@ -46,13 +43,23 @@ export default function Checkout() {
   const envioGratisPorPromo = location.state?.envioGratisPorPromo ?? false
   const zona = encontrarZonaPorProvincia(zonas, provincia)
 
-  // IMPORTANTE: este chequeo va PRIMERO, antes que cualquier otro que dependa
-  // del carrito, y depende SOLO de pedidoCreado (no de config). Al confirmar
-  // la compra vaciamos el carrito (items.length pasa a 0); si este bloque
-  // exigiera también que `config` ya haya cargado, una carrera de timing
-  // podría hacer que cayera en el chequeo de "carrito vacío" de más abajo y
-  // te mandara de vuelta sin mostrar nada. Por eso acá adentro contemplamos
-  // el caso de config todavía cargando por separado.
+  // REGLA DE REACT: nunca hay que llamar a navigate() directamente durante el
+  // renderizado (eso es un efecto secundario, no algo que decida "qué mostrar").
+  // Hacerlo puede producir comportamiento errático e intermitente. Toda
+  // redirección va acá, en un useEffect, y SIEMPRE se salta si ya hay un
+  // pedido confirmado — así ninguna otra condición puede taparlo jamás.
+  useEffect(() => {
+    if (pedidoCreado) return
+    if (items.length === 0) {
+      navigate('/carrito')
+      return
+    }
+    if (zonasCargadas && (!provincia || !zona)) {
+      navigate('/carrito')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidoCreado, items.length, provincia, zona?.id, zonasCargadas])
+
   if (pedidoCreado) {
     return (
       <LayoutTienda>
@@ -89,12 +96,10 @@ export default function Checkout() {
     )
   }
 
-  if (items.length === 0) {
-    navigate('/carrito')
-    return null
-  }
-  if (!provincia || !zona) {
-    navigate('/carrito')
+  // Estos casos ya están cubiertos por el useEffect de arriba, que se
+  // encarga de la redirección. Acá simplemente no renderizamos el
+  // formulario mientras eso pasa (nunca navegamos desde el render).
+  if (items.length === 0 || !provincia || !zona) {
     return null
   }
 
@@ -111,10 +116,6 @@ export default function Checkout() {
     setForm((f) => ({ ...f, [campo]: valor }))
   }
 
-  // El WhatsApp del cliente se guarda SOLO con los dígitos locales (código de
-  // área + número, sin 54/9): el prefijo "+54 9" queda fijo en pantalla para
-  // que el cliente no pueda olvidarlo ni escribirlo mal — el mismo problema
-  // que causaba que los links de WhatsApp no encontraran el número.
   const dniValido = /^\d{7,8}$/.test(form.dni)
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
   const whatsappValido = /^\d{8,10}$/.test(form.whatsapp)
@@ -178,18 +179,17 @@ export default function Checkout() {
         throw new Error('No pudimos generar el link de pago')
       }
 
-      vaciar()
+      // Primero fijamos el pedido creado (esto es lo que hace que se
+      // muestre la pantalla de éxito) y RECIÉN DESPUÉS vaciamos el carrito.
       setPedidoCreado({ id, dni: form.dni, total })
+      vaciar()
 
-      // Fire-and-forget: si el mail falla, no debe afectar la compra ya confirmada.
       fetch('/.netlify/functions/notificar-pedido-creado', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pedidoId: id })
       }).catch(() => {})
     } catch (err: any) {
-      // Mostramos el detalle técnico directo en pantalla (no solo en consola)
-      // para poder diagnosticar sin depender de las DevTools del navegador.
       console.error('Error al crear el pedido:', err)
       const detalle = [err?.code, err?.message].filter(Boolean).join(' — ') || 'Error desconocido'
 
