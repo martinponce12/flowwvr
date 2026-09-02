@@ -60,6 +60,16 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pedidoCreado, items.length, provincia, zona?.id, zonasCargadas])
 
+  // Vaciar el carrito es una CONSECUENCIA de haber confirmado el pedido, no
+  // algo simultáneo a confirmarlo — así, sin importar el timing exacto con
+  // que React procese los dos cambios de estado, la pantalla de éxito (que
+  // depende solo de pedidoCreado, ver más abajo) siempre queda mostrada
+  // antes de que el carrito pase a estar vacío.
+  useEffect(() => {
+    if (pedidoCreado) vaciar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidoCreado])
+
   if (pedidoCreado) {
     return (
       <LayoutTienda>
@@ -179,10 +189,10 @@ export default function Checkout() {
         throw new Error('No pudimos generar el link de pago')
       }
 
-      // Primero fijamos el pedido creado (esto es lo que hace que se
-      // muestre la pantalla de éxito) y RECIÉN DESPUÉS vaciamos el carrito.
+      // Mostramos la pantalla de éxito. Vaciar el carrito lo hace el
+      // useEffect dedicado, como consecuencia de este cambio de estado
+      // (no acá mismo), para evitar la condición de carrera.
       setPedidoCreado({ id, dni: form.dni, total })
-      vaciar()
 
       fetch('/.netlify/functions/notificar-pedido-creado', {
         method: 'POST',
