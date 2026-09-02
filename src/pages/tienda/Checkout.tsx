@@ -187,8 +187,19 @@ export default function Checkout() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pedidoId: id })
       }).catch(() => {})
-    } catch {
-      setErrorEnvio('No pudimos registrar tu pedido. Revisá tu conexión e intentá de nuevo. Si el problema sigue, escribinos por WhatsApp.')
+    } catch (err: any) {
+      // Mostramos el detalle técnico directo en pantalla (no solo en consola)
+      // para poder diagnosticar sin depender de las DevTools del navegador.
+      console.error('Error al crear el pedido:', err)
+      const detalle = [err?.code, err?.message].filter(Boolean).join(' — ') || 'Error desconocido'
+
+      if (err?.code === 'permission-denied') {
+        setErrorEnvio(`No pudimos registrar tu pedido por un problema de permisos. Escribinos por WhatsApp para completarlo manualmente. (Detalle técnico: ${detalle})`)
+      } else if (err?.code === 'unavailable' || err?.message?.includes('network')) {
+        setErrorEnvio(`Parece que hay un problema de conexión. Revisá tu internet e intentá de nuevo. (Detalle técnico: ${detalle})`)
+      } else {
+        setErrorEnvio(`No pudimos registrar tu pedido. Intentá de nuevo en unos segundos. Si el problema sigue, escribinos por WhatsApp. (Detalle técnico: ${detalle})`)
+      }
     } finally {
       setEnviando(false)
     }
