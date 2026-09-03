@@ -7,7 +7,12 @@
   padding: 12px; border-radius: var(--radio-chico);
 }
 .seguimiento__error { color: var(--error); margin-bottom: 12px; }
+.seguimiento__lista { display: flex; flex-direction: column; gap: 14px; }
 .seguimiento__resultado {
   background: var(--bg-surface); border: 1px solid var(--borde); border-radius: var(--radio);
-  padding: 18px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  padding: 18px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
 }
+.seguimiento__resultado-encabezado {
+  display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 4px;
+}
+.seguimiento__codigo { font-size: 0.75rem; color: var(--fg-muted); font-family: var(--font-display); }

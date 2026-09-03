@@ -1,7 +1,5 @@
 import type { EstadoPedido } from '@/types'
 
-// Etiquetas y colores centralizados para el estado de un pedido, usados
-// tanto en el panel admin como en la página pública de seguimiento.
 export const ETIQUETAS_ESTADO: Record<EstadoPedido, string> = {
   pendiente_pago: 'Pendiente de pago',
   esperando_comprobante: 'Esperando comprobante',
@@ -13,7 +11,6 @@ export const ETIQUETAS_ESTADO: Record<EstadoPedido, string> = {
   reembolsado: 'Reembolsado'
 }
 
-// Clase de color por estado (definidas en global.css)
 export const COLOR_ESTADO: Record<EstadoPedido, string> = {
   pendiente_pago: 'estado--pendiente',
   esperando_comprobante: 'estado--pendiente',

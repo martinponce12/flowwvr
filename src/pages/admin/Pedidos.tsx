@@ -26,7 +26,6 @@ export default function AdminPedidos() {
     const cambios: Partial<Pedido> = { estadoPedido: nuevoEstado, fechaActualizacion: new Date().toISOString() }
     if (nuevoEstado === 'pagado') cambios.estadoPago = 'pagado'
 
-    // Al cancelar o reembolsar un pedido que ya estaba pagado, reponemos el stock.
     if ((nuevoEstado === 'cancelado' || nuevoEstado === 'reembolsado') && pedido.estadoPago === 'pagado') {
       for (const item of pedido.productos) {
         const producto = await obtenerProducto(item.productoId)
@@ -34,8 +33,6 @@ export default function AdminPedidos() {
       }
     }
 
-    // Al marcar como pagado, descontamos stock (idempotente: solo si no estaba ya pagado)
-    // y avisamos al cliente por mail.
     if (nuevoEstado === 'pagado' && pedido.estadoPago !== 'pagado') {
       for (const item of pedido.productos) {
         const producto = await obtenerProducto(item.productoId)
@@ -65,8 +62,6 @@ export default function AdminPedidos() {
       : '¿Eliminar este pedido? Esta acción no se puede deshacer.'
     if (!confirm(advertencia)) return
 
-    // Si el pedido ya había descontado stock, lo reponemos antes de borrar
-    // para que ese stock no quede "perdido".
     if (pedido.estadoPago === 'pagado') {
       for (const item of pedido.productos) {
         const producto = await obtenerProducto(item.productoId)
@@ -84,11 +79,13 @@ export default function AdminPedidos() {
       <h1 className="admin-titulo">Pedidos</h1>
 
       <table className="admin-tabla">
-        <thead><tr><th>Cliente</th><th>Total</th><th>Pago</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+        <thead><tr><th>Código</th><th>Cliente</th><th>DNI</th><th>Total</th><th>Pago</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
         <tbody>
           {pedidos.map((p) => (
             <tr key={p.id}>
+              <td style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem' }}>{p.id}</td>
               <td>{p.cliente}</td>
+              <td>{p.dni}</td>
               <td>{formatearPrecio(p.total)}</td>
               <td>{p.metodoPago}</td>
               <td><span className={`admin-badge-estado ${COLOR_ESTADO[p.estadoPedido]}`}>{ETIQUETAS_ESTADO[p.estadoPedido]}</span></td>
@@ -106,6 +103,7 @@ export default function AdminPedidos() {
       {seleccionado && (
         <div className="admin-form" style={{ maxWidth: 560, marginTop: 20 }}>
           <h2 style={{ fontSize: '1.1rem' }}>Pedido de {seleccionado.cliente}</h2>
+          <p><strong>Código:</strong> <span style={{ fontFamily: 'var(--font-display)' }}>{seleccionado.id}</span></p>
           <p><strong>DNI:</strong> {seleccionado.dni} · <strong>WhatsApp:</strong> {seleccionado.whatsapp} · <strong>Email:</strong> {seleccionado.email}</p>
           <p><strong>Dirección:</strong> {seleccionado.direccion.calle} {seleccionado.direccion.numero}, {seleccionado.direccion.localidad}, {seleccionado.direccion.provincia} (CP {seleccionado.direccion.codigoPostal})</p>
           {seleccionado.notasPersonalizacion && <p><strong>Notas:</strong> {seleccionado.notasPersonalizacion}</p>}
