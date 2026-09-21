@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { listarPedidos, actualizarPedido, eliminarPedido } from '@/services/datos/pedidos'
 import { actualizarProducto, obtenerProducto } from '@/services/datos/productos'
@@ -18,9 +18,23 @@ export default function AdminPedidos() {
   const [seleccionado, setSeleccionado] = useState<Pedido | null>(null)
   const [tracking, setTracking] = useState('')
   const [operador, setOperador] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   function cargar() { listarPedidos().then(setPedidos) }
   useEffect(cargar, [])
+
+  // Filtro por cliente, DNI o código de pedido — todo en el mismo campo,
+  // porque en la práctica el admin a veces tiene el nombre y a veces el DNI
+  // a mano, según cómo lo contacte el cliente.
+  const pedidosFiltrados = useMemo(() => {
+    const termino = busqueda.trim().toLowerCase()
+    if (!termino) return pedidos
+    return pedidos.filter((p) =>
+      p.cliente.toLowerCase().includes(termino) ||
+      p.dni.includes(termino) ||
+      p.id.toLowerCase().includes(termino)
+    )
+  }, [pedidos, busqueda])
 
   async function cambiarEstado(pedido: Pedido, nuevoEstado: EstadoPedido) {
     const cambios: Partial<Pedido> = { estadoPedido: nuevoEstado, fechaActualizacion: new Date().toISOString() }
@@ -76,12 +90,29 @@ export default function AdminPedidos() {
 
   return (
     <LayoutAdmin>
-      <h1 className="admin-titulo">Pedidos</h1>
+      <div className="admin-toolbar">
+        <h1 className="admin-titulo" style={{ marginBottom: 0 }}>Pedidos</h1>
+        <input
+          placeholder="Buscar por cliente, DNI o código..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          style={{
+            background: 'var(--bg-surface)', border: '1px solid var(--borde)', color: 'var(--fg)',
+            padding: '10px 14px', borderRadius: 'var(--radio-chico)', minWidth: 260
+          }}
+        />
+      </div>
+
+      {busqueda && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginBottom: 12 }}>
+          {pedidosFiltrados.length} de {pedidos.length} pedidos
+        </p>
+      )}
 
       <table className="admin-tabla">
         <thead><tr><th>Código</th><th>Cliente</th><th>DNI</th><th>Total</th><th>Pago</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
         <tbody>
-          {pedidos.map((p) => (
+          {pedidosFiltrados.map((p) => (
             <tr key={p.id}>
               <td style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem' }}>{p.id}</td>
               <td>{p.cliente}</td>
@@ -99,6 +130,10 @@ export default function AdminPedidos() {
           ))}
         </tbody>
       </table>
+
+      {busqueda && pedidosFiltrados.length === 0 && (
+        <p style={{ color: 'var(--fg-muted)', marginTop: 16 }}>No hay pedidos que coincidan con "{busqueda}".</p>
+      )}
 
       {seleccionado && (
         <div className="admin-form" style={{ maxWidth: 560, marginTop: 20 }}>
