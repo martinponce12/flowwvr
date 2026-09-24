@@ -1,17 +1,19 @@
 import './imagen-producto.css'
 
 interface Props {
-  imagenUrl?: string
+  imagenes?: string[]
   colorPlaceholder?: string
   nombre: string
 }
 
 // Mientras no haya fotos reales cargadas, mostramos un placeholder con
-// textura holográfica (coherente con la identidad de marca) en vez de un
-// ícono genérico roto. Apenas el admin suba `imagenUrl`, se muestra la foto real.
-export default function ImagenProducto({ imagenUrl, colorPlaceholder, nombre }: Props) {
-  if (imagenUrl) {
-    return <img src={imagenUrl} alt={nombre} className="imagen-producto" />
+// textura holográfica en vez de un ícono genérico roto. Muestra la primera
+// foto del array (la "principal"); las demás (dorso, packaging) se ven en
+// la galería de la página de detalle.
+export default function ImagenProducto({ imagenes, colorPlaceholder, nombre }: Props) {
+  const principal = imagenes?.[0]
+  if (principal) {
+    return <img src={principal} alt={nombre} className="imagen-producto" />
   }
   return (
     <div className={`imagen-producto imagen-producto--placeholder ph-${colorPlaceholder ?? 'default'}`}>

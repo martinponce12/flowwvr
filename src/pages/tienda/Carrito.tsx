@@ -75,7 +75,11 @@ export default function Carrito() {
           {items.map((item) => (
             <div key={item.productoId} className="carrito__item">
               <div className="carrito__item-imagen">
-                <ImagenProducto imagenUrl={item.imagenUrl} colorPlaceholder={item.colorPlaceholder} nombre={item.nombre} />
+                <ImagenProducto
+                  imagenes={item.imagenUrl ? [item.imagenUrl] : undefined}
+                  colorPlaceholder={item.colorPlaceholder}
+                  nombre={item.nombre}
+                />
               </div>
               <div className="carrito__item-info">
                 <p className="carrito__item-nombre">{item.nombre}</p>

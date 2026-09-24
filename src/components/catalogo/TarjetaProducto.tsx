@@ -13,7 +13,7 @@ export default function TarjetaProducto({ producto }: { producto: Producto }) {
     <Link to={`/producto/${producto.id}`} className="tarjeta-producto">
       <div className="tarjeta-producto__imagen-wrap">
         <ImagenProducto
-          imagenUrl={producto.imagenUrl}
+          imagenes={producto.imagenes}
           colorPlaceholder={producto.colorPlaceholder}
           nombre={producto.nombre}
         />

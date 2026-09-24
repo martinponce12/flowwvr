@@ -40,7 +40,7 @@ export const useCarrito = create<EstadoCarrito>()(
                 nombre: producto.nombre,
                 precioUnitario: producto.precioPromocional ?? producto.precio,
                 cantidad: Math.min(cantidad, producto.stockActual),
-                imagenUrl: producto.imagenUrl,
+                imagenUrl: producto.imagenes?.[0],
                 colorPlaceholder: producto.colorPlaceholder
               }
             ]

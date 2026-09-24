@@ -19,6 +19,7 @@ export default function DetalleProducto() {
   const [config, setConfig] = useState<Configuracion | null>(null)
   const [cantidad, setCantidad] = useState(1)
   const [agregado, setAgregado] = useState(false)
+  const [fotoActiva, setFotoActiva] = useState(0)
   const agregarProducto = useCarrito((s) => s.agregarProducto)
 
   useEffect(() => {
@@ -40,13 +41,34 @@ export default function DetalleProducto() {
   }
 
   const sinStock = producto.stockActual <= 0
+  const fotos = producto.imagenes ?? []
   const linkWa = config ? linkWhatsapp(config.tienda.whatsapp, `Hola! Quiero personalizar el ${producto.nombre}`) : '#'
 
   return (
     <LayoutTienda>
       <div className="contenedor detalle-producto">
         <div className="detalle-producto__imagen">
-          <ImagenProducto imagenUrl={producto.imagenUrl} colorPlaceholder={producto.colorPlaceholder} nombre={producto.nombre} />
+          {fotos.length > 0 ? (
+            <>
+              <img src={fotos[fotoActiva]} alt={producto.nombre} className="detalle-producto__foto-principal" />
+              {fotos.length > 1 && (
+                <div className="detalle-producto__miniaturas">
+                  {fotos.map((foto, i) => (
+                    <button
+                      key={foto}
+                      className={`detalle-producto__miniatura ${i === fotoActiva ? 'detalle-producto__miniatura--activa' : ''}`}
+                      onClick={() => setFotoActiva(i)}
+                      aria-label={`Ver foto ${i + 1}`}
+                    >
+                      <img src={foto} alt="" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <ImagenProducto imagenes={producto.imagenes} colorPlaceholder={producto.colorPlaceholder} nombre={producto.nombre} />
+          )}
         </div>
 
         <div className="detalle-producto__info">

@@ -5,17 +5,17 @@ import {
   listarTodosLosProductos, crearProducto, actualizarProducto, eliminarProducto
 } from '@/services/datos/productos'
 import { listarCategorias } from '@/services/datos/categorias'
-import { subirImagenProducto } from '@/services/firebase/storage'
+import { subirImagenProducto, cloudinaryHabilitado } from '@/services/cloudinary/upload'
 import { formatearPrecio } from '@/utils/formato'
 import type { Producto, Categoria } from '@/types'
 import '@/styles/admin-comun.css'
 
+const MAX_FOTOS = 3
+
 const VACIO: Omit<Producto, 'id'> = {
   nombre: '', descripcion: '', precio: 0, stockActual: 0, categoriaId: '',
-  peso: 25, alto: 8, ancho: 3, largo: 1.5, publicado: true, destacado: false, nuevo: false
+  imagenes: [], peso: 25, alto: 8, ancho: 3, largo: 1.5, publicado: true, destacado: false, nuevo: false
 }
-
-const storageHabilitado = import.meta.env.VITE_STORAGE_HABILITADO === 'true'
 
 export default function AdminProductos() {
   const [productos, setProductos] = useState<Producto[]>([])
@@ -23,7 +23,8 @@ export default function AdminProductos() {
   const [editando, setEditando] = useState<string | null>(null)
   const [form, setForm] = useState<Omit<Producto, 'id'>>(VACIO)
   const [mostrarForm, setMostrarForm] = useState(false)
-  const [subiendoImagen, setSubiendoImagen] = useState(false)
+  const [subiendoIndice, setSubiendoIndice] = useState<number | null>(null)
+  const [errorSubida, setErrorSubida] = useState('')
 
   function cargar() {
     listarTodosLosProductos().then(setProductos)
@@ -40,7 +41,7 @@ export default function AdminProductos() {
 
   function editar(p: Producto) {
     const { id, ...resto } = p
-    setForm(resto)
+    setForm({ ...resto, imagenes: resto.imagenes ?? [] })
     setEditando(id)
     setMostrarForm(true)
   }
@@ -56,23 +57,41 @@ export default function AdminProductos() {
     cargar()
   }
 
-  async function subirImagen(e: ChangeEvent<HTMLInputElement>) {
-    const archivo = e.target.files?.[0]
-    if (!archivo) return
-    setSubiendoImagen(true)
-    try {
-      const url = await subirImagenProducto(archivo)
-      setForm((f) => ({ ...f, imagenUrl: url }))
-    } finally {
-      setSubiendoImagen(false)
-    }
-  }
-
   async function borrar(id: string) {
     if (!confirm('¿Eliminar este producto?')) return
     await eliminarProducto(id)
     cargar()
   }
+
+  async function subirFoto(indice: number, e: ChangeEvent<HTMLInputElement>) {
+    const archivo = e.target.files?.[0]
+    if (!archivo) return
+    setErrorSubida('')
+    setSubiendoIndice(indice)
+    try {
+      const url = await subirImagenProducto(archivo)
+      setForm((f) => {
+        const imagenes = [...(f.imagenes ?? [])]
+        imagenes[indice] = url
+        return { ...f, imagenes }
+      })
+    } catch (err: any) {
+      setErrorSubida(err?.message ?? 'No se pudo subir la imagen.')
+    } finally {
+      setSubiendoIndice(null)
+      e.target.value = ''
+    }
+  }
+
+  function quitarFoto(indice: number) {
+    setForm((f) => {
+      const imagenes = [...(f.imagenes ?? [])]
+      imagenes.splice(indice, 1)
+      return { ...f, imagenes }
+    })
+  }
+
+  const etiquetasFoto = ['Frente', 'Dorso', 'Packaging']
 
   return (
     <LayoutAdmin>
@@ -106,24 +125,52 @@ export default function AdminProductos() {
             <label>Stock actual</label>
             <input type="number" value={form.stockActual} onChange={(e) => setForm({ ...form, stockActual: Number(e.target.value) })} />
           </div>
+
           <div>
-            <label>Foto del producto</label>
-            {storageHabilitado ? (
-              <>
-                <input type="file" accept="image/*" onChange={subirImagen} disabled={subiendoImagen} />
-                {subiendoImagen && <p style={{ fontSize: '0.8rem', color: 'var(--fg-muted)', marginTop: 6 }}>Subiendo...</p>}
-              </>
-            ) : (
-              <p style={{ fontSize: '0.8rem', color: 'var(--warn)' }}>
-                La carga directa de fotos todavía no está activada (falta Firebase Storage). Por ahora, pegá la URL de la imagen abajo.
+            <label>Fotos (hasta 3: frente, dorso, packaging)</label>
+            {!cloudinaryHabilitado && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--warn)', marginBottom: 8 }}>
+                La carga de fotos todavía no está configurada (falta Cloudinary). Pedile al desarrollador que lo active.
               </p>
             )}
-            {form.imagenUrl && (
-              <img src={form.imagenUrl} alt="Vista previa" style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, marginTop: 8 }} />
-            )}
-            <label style={{ marginTop: 10 }}>{storageHabilitado ? 'O pegar una URL de imagen (opcional)' : 'URL de la imagen'}</label>
-            <input value={form.imagenUrl ?? ''} onChange={(e) => setForm({ ...form, imagenUrl: e.target.value })} placeholder="https://..." />
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {[0, 1, 2].map((indice) => {
+                const url = form.imagenes?.[indice]
+                return (
+                  <div key={indice} style={{ textAlign: 'center' }}>
+                    <div style={{
+                      width: 88, height: 88, borderRadius: 8, overflow: 'hidden',
+                      background: 'var(--bg-surface-2)', border: '1px solid var(--borde)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4
+                    }}>
+                      {url ? (
+                        <img src={url} alt={etiquetasFoto[indice]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--fg-muted)' }}>{subiendoIndice === indice ? 'Subiendo...' : 'Vacío'}</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--fg-muted)', marginBottom: 4 }}>{etiquetasFoto[indice]}</p>
+                    {url ? (
+                      <button className="admin-accion-link admin-accion-link--peligro" style={{ fontSize: '0.7rem' }} onClick={() => quitarFoto(indice)}>Quitar</button>
+                    ) : (
+                      <label style={{ fontSize: '0.7rem', color: 'var(--accent-flame)', cursor: cloudinaryHabilitado ? 'pointer' : 'not-allowed' }}>
+                        Subir
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={!cloudinaryHabilitado || subiendoIndice !== null}
+                          onChange={(e) => subirFoto(indice, e)}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            {errorSubida && <p style={{ color: 'var(--error)', fontSize: '0.8rem', marginTop: 6 }}>{errorSubida}</p>}
           </div>
+
           <div className="admin-form-fila"><input type="checkbox" checked={form.publicado} onChange={(e) => setForm({ ...form, publicado: e.target.checked })} /> Publicado</div>
           <div className="admin-form-fila"><input type="checkbox" checked={form.destacado} onChange={(e) => setForm({ ...form, destacado: e.target.checked })} /> Destacado</div>
           <div className="admin-form-fila"><input type="checkbox" checked={form.nuevo} onChange={(e) => setForm({ ...form, nuevo: e.target.checked })} /> Nuevo</div>

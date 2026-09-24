@@ -6,8 +6,8 @@ export interface Producto {
   precioPromocional?: number
   stockActual: number
   categoriaId: string
-  imagenUrl?: string
-  colorPlaceholder?: string // usado mientras no hay foto real
+  imagenes?: string[] // hasta 3 fotos: frente, dorso, packaging
+  colorPlaceholder?: string // usado mientras no hay ninguna foto cargada
   peso: number
   alto: number
   ancho: number
@@ -56,7 +56,7 @@ export interface ItemCarrito {
   nombre: string
   precioUnitario: number
   cantidad: number
-  imagenUrl?: string
+  imagenUrl?: string // primera foto del producto, para mostrar en el carrito
   colorPlaceholder?: string
 }
 

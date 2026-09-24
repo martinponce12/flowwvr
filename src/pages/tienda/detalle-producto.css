@@ -6,6 +6,38 @@
 @media (min-width: 720px) {
   .detalle-producto { grid-template-columns: 1fr 1fr; align-items: start; }
 }
+
+.detalle-producto__foto-principal {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radio);
+  background: var(--bg-surface);
+}
+.detalle-producto__miniaturas {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.detalle-producto__miniatura {
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border-radius: var(--radio-chico);
+  border: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+.detalle-producto__miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.detalle-producto__miniatura--activa {
+  border-color: var(--accent-flame);
+}
+
 .detalle-producto__badges {
   display: flex;
   gap: 6px;
