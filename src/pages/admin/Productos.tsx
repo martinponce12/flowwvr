@@ -10,7 +10,6 @@ import { formatearPrecio } from '@/utils/formato'
 import type { Producto, Categoria } from '@/types'
 import '@/styles/admin-comun.css'
 
-const MAX_FOTOS = 3
 
 const VACIO: Omit<Producto, 'id'> = {
   nombre: '', descripcion: '', precio: 0, stockActual: 0, categoriaId: '',
